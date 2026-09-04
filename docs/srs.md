@@ -66,7 +66,7 @@ All human users and automated system actors authenticate against a single unifie
 
 ### 4.1 Authentication & Session Management
 - **FR-1.1 (Web Auth):** The system shall authenticate customers and staff using secure JWT-based credentials with automatic session expiry.
-- **FR-1.2 (WhatsApp Identity):** The system shall resolve inbound WhatsApp messages to customer accounts using verified unique `phone_number` records. Only the number registered on the customer account can be used for whatsapp access.
+- **FR-1.2 (WhatsApp Identity & Onboarding):** The system shall resolve inbound WhatsApp messages to customer accounts using verified unique `phone_number` records. For new or unverified WhatsApp sessions, the system shall prompt the customer to verify their identity by entering the last 4 digits of their CNIC before granting access to account information and transactional services.
 - **FR-1.3 (Tenant Data Isolation):** The backend shall validate data ownership on every API endpoint (`record.user_id == request.user.id`). Any attempt to access unauthorized accounts (IDOR) shall be rejected with `403 Forbidden` and logged in the Security Audit Log.
 
 ### 4.2 Account & Balance Inquiries

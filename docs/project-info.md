@@ -58,7 +58,7 @@ All database entities are strictly owned and managed by the **Main Service (Post
 
 #### 1. Identity, Access & Role Architecture (`users_user`)
 A single unified user identity model governs all human and automated system actors, differentiated by an explicit `role` parameter with strict Role-Based Access Control (RBAC):
-- **`id`**, **`phone_number`** (unique candidate key for WhatsApp identity resolution), **`email`**, **`full_name`**, **`role`**, **`kyc_status`** (`VERIFIED`, `PENDING`, `REJECTED`), **`is_active`**, **`created_at`**.
+- **`id`**, **`phone_number`** (unique candidate key for WhatsApp identity resolution), **`cnic`**, **`email`**, **`full_name`**, **`role`**, **`kyc_status`** (`VERIFIED`, `PENDING`, `REJECTED`), **`is_active`**, **`created_at`**.
 - **User Roles & Privilege Scope:**
   - **`CUSTOMER`:** Self-service end-user. Restricted strictly to their own accounts, cards, beneficiaries, transactions, and chat sessions. Cannot view or access administrative endpoints or other customers' data.
   - **`SUPPORT_AGENT`:** Frontline support staff. Can view customer chat sessions, accept human escalations/handoffs, view sanitized customer profile details (masked cards, account overview), and log tickets. Cannot approve high-value monetary overrides or change system configs.
