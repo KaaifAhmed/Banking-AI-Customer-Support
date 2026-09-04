@@ -1,0 +1,74 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-main_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  main-service:
+    build: ./main-service
+    env_file: .env
+    environment:
+      POSTGRES_HOST: postgres
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "8000:8000"
+
+  ai-worker:
+    build:
+      context: .
+      dockerfile: ai-worker/Dockerfile
+    env_file: .env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      MAIN_SERVICE_URL: http://main-service:8000
+      WHATSAPP_SERVICE_URL: http://whatsapp-service:3001
+    depends_on:
+      - redis
+      - main-service
+
+  background-worker:
+    build:
+      context: .
+      dockerfile: background-worker/Dockerfile
+    env_file: .env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      MAIN_SERVICE_URL: http://main-service:8000
+      WHATSAPP_SERVICE_URL: http://whatsapp-service:3001
+    depends_on:
+      - redis
+      - main-service
+
+  whatsapp-service:
+    build: ./whatsapp-service
+    env_file: .env
+    environment:
+      MAIN_SERVICE_URL: http://main-service:8000
+    ports:
+      - "3001:3001"
+    depends_on:
+      - main-service
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:3000"
+    depends_on:
+      - main-service
+
+volumes:
+  pgdata:
