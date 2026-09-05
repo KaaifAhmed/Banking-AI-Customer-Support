@@ -92,7 +92,7 @@ Per `architecture.md`, dynamic configuration is deliberately scoped to the AI la
 
 ### 6. Where does AI/LLM capability actually create value in this solution (not just "add AI somewhere")?
 - **Zero-Friction Intent Resolution:** Eliminates frustrating rigid IVR and multi-level app menus. Customers speak or type naturally (including mixed phrasing and colloquial queries).
-- **Contextual Reasoning & Slot Filling:** Intelligently extracts missing parameters through dialogue (e.g., User: *"Send money to Ahmed"* -> AI: *"You have two saved beneficiaries named Ahmed: Ahmed Khan (Standard Chartered) and Ahmed Ali (Meezan). Which one would you like to transfer to, and what amount?"*).
+- **Contextual Reasoning & Slot Filling:** Intelligently extracts missing parameters through dialogue (e.g., User: *"Send money to Ahmed"* -> AI: *"You have two saved beneficiaries named Ahmed: Ahmed Khan (Standard Chartered) and Ahmed Ali (Venus Bank). Which one would you like to transfer to, and what amount?"*).
 - **Plain-English Financial Explanations:** Dissects cryptic merchant codes and statement abbreviations (e.g., *"POS 0921 KHI RET"* explained as *"This was a debit card purchase of Rs. 4,500 at Imtiaz Super Market Karachi on September 2nd"*).
 - **Dynamic Semantic Search & Policy Retrieval (RAG):** Answers complex fee inquiries, foreign exchange policies, and account terms grounded in bank policy documents using pgvector.
 - **Safety Gatekeeper with Structured Intent:** Converts fuzzy user requests into strictly typed tool payloads that must pass programmatic validation before execution.
@@ -253,7 +253,7 @@ Each action supported by the AI banking agent is strictly governed by pre-condit
      ```
      Transfer Confirmation
      Recipient: Ahmed Khan
-     Bank: Meezan Bank (Account: ****4821)
+     Bank: Venus Bank (Account: ****4821)
      Amount: Rs. 5,000
      Transfer Fee: Rs. 0
      Total Deduction: Rs. 5,000
