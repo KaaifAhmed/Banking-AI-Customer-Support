@@ -13,14 +13,14 @@
 
 - [x] **Phase 1 — Discovery & SRS Generation** (`docs/project-info.md`, `docs/srs.md`)
 - [x] **Phase 2 — Solution Design** (`docs/system-design.md`, `docs/architecture.md`, team assignments)
-- [x] **Contract Locking — Inter-Service & OpenAPI Specs** (`docs/contracts.md`)
-- [ ] **Phase 3 — Component Design** (Internal logic & blueprints against locked contracts)
-- [ ] **Phase 4 — Implementation** (Parallel component implementation)
-- [ ] **Phase 5 — Component (Unit) Testing** (Passing test suite per component)
-- [ ] **Phase 6 — Integration & System Testing** (Full system running end-to-end)
-- [ ] **Phase 7 — Refinement** (Stabilization & bug fixes)
-- [ ] **Phase 8 — Documentation** (`README.md`, setup validation)
-- [ ] **Phase 9 — Presentation & Submission** (Demo packaging & presentation)
+- [x] **Phase 3 — Contract Locking** (`docs/contracts.md`)
+- [ ] **Phase 4 — Component Design** (Internal logic & blueprints against locked contracts)
+- [ ] **Phase 5 — Implementation** (Parallel component implementation)
+- [ ] **Phase 6 — Component (Unit) Testing** (Passing test suite per component)
+- [ ] **Phase 7 — Integration & System Testing** (Full system running end-to-end)
+- [ ] **Phase 8 — Refinement** (Stabilization & bug fixes)
+- [ ] **Phase 9 — Documentation** (`README.md`, setup validation)
+- [ ] **Phase 10 — Presentation & Submission** (Demo packaging & presentation)
 
 ## Phase-by-Phase
 
@@ -29,14 +29,19 @@
 Answer the pre-written discovery question bank (below) as a team, as soon as the theme is revealed. Feed the answers into an LLM with a fixed prompt template to generate a short SRS-style document (problem statement, scope, user stories, must-haves vs. stretch). No open-ended brainstorming here — the question bank exists specifically to prevent this phase from sprawling.
 **Output:** `srs.md`
 
-### Phase 2 — Solution Design & Inter-Service Contract Locking
-**Time-box: 10:00–10:30 (30 min)**
-Map the SRS onto the existing scaffold: which service owns which part of the problem, what the domain models are, and how services communicate. **Centrally define and lock all API endpoints, request/response JSON shapes, and queue payloads (`contracts.md`) using the OpenAPI Contract Template (below).** Every team member must know the exact boundary interfaces before branching into individual component work.
-**Output:** `system-design.md`, `architecture.md`, locked `contracts.md`, and ownership assignments.
+### Phase 2 — Solution Design
+**Time-box: 10:00–10:20 (20 min)**
+Map the SRS onto the existing scaffold: which service owns which part of the problem, what the domain models are, how services communicate, and who owns each component. Define the service boundaries and technical responsibilities, but do not finalize endpoint-level schemas yet.
+**Output:** `system-design.md`, `architecture.md`, and ownership assignments.
 
-### Phase 3 — Component Design
+### Phase 3 — Contract Locking
+**Time-box: 10:20–10:30 (10 min)**
+Translate the approved solution boundaries into the shared interface specification. Centrally define and lock all API endpoints, request/response JSON shapes, and queue payloads (`contracts.md`) using the OpenAPI Contract Template (below). Every team member must agree on the exact boundary interfaces before component design begins.
+**Output:** Locked `contracts.md`.
+
+### Phase 4 — Component Design
 **Time-box: 10:30–10:45 (15 min)**
-With the shared inter-service contracts already locked in Phase 2, each owner independently designs their component's internal architecture: internal function signatures, state machine logic, serializer validations, and unit test plans strictly against the locked contract.
+With the shared inter-service contracts locked in Phase 3, each owner independently designs their component's internal architecture: internal function signatures, state machine logic, serializer validations, and unit test plans strictly against the locked contract.
 **Output:** Internal design specifications / implementation blueprints per component.
 
 ## OpenAPI Contract Template
@@ -77,34 +82,34 @@ Every API endpoint must be specified using this standardized template before imp
 - **Invariants / Side-Effects:** Atomic transactions, state changes, or queue dispatches triggered.
 ```
 
-### Phase 4 — Implementation
+### Phase 5 — Implementation
 **Time-box: 10:45–12:30 (105 min)**
-Each owner directs AI agents to implement their component strictly against its locked contract and the coding guidelines. Owners review and correct agent output rather than hand-writing from scratch. No cross-component coordination needed here — that's the point of Phase 3.
+Each owner directs AI agents to implement their component strictly against its locked contract and the coding guidelines. Owners review and correct agent output rather than hand-writing from scratch. No cross-component coordination needed here — that's the point of Phase 4.
 **Output:** Working code per component, committed to the repo
 
-### Phase 5 — Component (Unit) Testing
+### Phase 6 — Component (Unit) Testing
 **Time-box: 12:30–13:00 (30 min)**
 Each owner writes and runs unit tests for their own component per the testing guidelines, to the quality bar defined there — before touching anything else. A component isn't "done" until its own tests pass.
 **Output:** Passing test suite per component
 
 *— Lunch break, 13:00–14:00 —*
 
-### Phase 6 — Integration & System Testing
+### Phase 7 — Integration & System Testing
 **Time-box: 14:00–15:00 (60 min)**
 Combine all components: wire real inter-service calls in place of mocks, bring the full stack up via `docker-compose up`, run end-to-end tests through the Gateway. This is where contract mismatches (if any) surface — fix them here, not by rewriting components from scratch.
 **Output:** Full system running end-to-end locally
 
-### Phase 7 — Refinement
+### Phase 8 — Refinement
 **Time-box: 15:00–15:20 (20 min)**
 Fix anything integration testing surfaced. No new features here — this phase exists to stabilize, not extend.
 **Output:** Stable, deployable build
 
-### Phase 8 — Documentation
+### Phase 9 — Documentation
 **Time-box: 15:20–15:45 (25 min)**
 Write the project documentation per the predefined documentation guide — concise, complete, no bloat. Most of the structure (architecture, SDLC, guidelines) already exists from pre-hackathon prep; this phase fills in the domain-specific parts (what was actually built, how to run it, key decisions made on the day).
 **Output:** Final `README.md` / project docs, deployed build
 
-### Phase 9 — Presentation & Submission
+### Phase 10 — Presentation & Submission
 **Time-box: 15:45–16:00 (15 min)**
 Feed the finished documentation into an AI tool (e.g. NotebookLM) to generate a short explainer/presentation — this is fast specifically *because* the documentation is already concise and complete. Package and submit by 16:00.
 **Output:** Explainer artifact, final submission
@@ -114,15 +119,16 @@ Feed the finished documentation into an AI tool (e.g. NotebookLM) to generate a 
 | Time | Phase | Duration |
 |---|---|---|
 | 9:30–10:00 | 1. Discovery & SRS | 30 min |
-| 10:00–10:30 | 2. Solution Design | 30 min |
-| 10:30–10:45 | 3. Component Design | 15 min |
-| 10:45–12:30 | 4. Implementation | 105 min |
-| 12:30–13:00 | 5. Component Testing | 30 min |
+| 10:00–10:20 | 2. Solution Design | 20 min |
+| 10:20–10:30 | 3. Contract Locking | 10 min |
+| 10:30–10:45 | 4. Component Design | 15 min |
+| 10:45–12:30 | 5. Implementation | 105 min |
+| 12:30–13:00 | 6. Component Testing | 30 min |
 | 13:00–14:00 | *Lunch* | — |
-| 14:00–15:00 | 6. Integration & System Testing | 60 min |
-| 15:00–15:20 | 7. Refinement | 20 min |
-| 15:20–15:45 | 8. Documentation | 25 min |
-| 15:45–16:00 | 9. Presentation & Submission | 15 min |
+| 14:00–15:00 | 7. Integration & System Testing | 60 min |
+| 15:00–15:20 | 8. Refinement | 20 min |
+| 15:20–15:45 | 9. Documentation | 25 min |
+| 15:45–16:00 | 10. Presentation & Submission | 15 min |
 
 ## Discovery Question Bank
 

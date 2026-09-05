@@ -67,7 +67,7 @@ This document adapts the baseline architecture from [docs/pre-made/architecture-
 - **Stack:** LangGraph + LangChain + LiteLLM.
 - **Queue Consumer:** Consumes `ai_queue` only. Does not serve HTTP.
 - **Node-Scoped Tools:** Tools bound per graph node (inquiry nodes cannot execute transfers). Tool calls execute via Main Service internal endpoints.
-- **Dynamic Config:** Fetches prompt versions, model tiers, and fallbacks from `GET /api/internal/ai-config` (caching strategy and duration to be finalized during the AI component design pass in Phase 3).
+- **Dynamic Config:** Fetches prompt versions, model tiers, and fallbacks from `GET /api/internal/ai-config` (caching strategy and duration to be finalized during the AI component design pass in Phase 4).
 
 ### 2.4 Background Worker (`background-worker/`)
 - **Stack:** Async Python worker consuming `tasks_queue`.
@@ -85,7 +85,7 @@ This document adapts the baseline architecture from [docs/pre-made/architecture-
 
 The project is driven by a 4-member team. Leadership and component ownership are distributed as follows:
 
-| Team Member | Core Focus & Role | Owned Components & Directories | Key Deliverables for Phase 3 (Contract Design) |
+| Team Member | Core Focus & Role | Owned Components & Directories | Key Deliverables for Phase 4 (Component Design) |
 |---|---|---|---|
 | **Kaaif** | **Project Lead & System Architect** | Cross-system architecture, `main-service/` core actions, and AI co-design with Javed (`ai-worker/`) | System cohesion, inter-service contracts, staged transaction logic, and AI prompt/tool contracts. |
 | **Hamza** | **Backend & Infrastructure Lead** | `main-service/` (Django, Users, Core, DB migrations), Redis queues, and `background-worker/` | OpenAPI specs for `/auth/*` and `/api/*`, database schema migrations, Redis queue setup, and worker handlers. |

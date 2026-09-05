@@ -2,7 +2,7 @@
 ## AI Banking Customer Support System
 
 **Project:** CWA Ship Karachi 2026 — Production-Grade AI Product  
-**Phase:** SDLC Phase 2 (Contract Locking)  
+**Phase:** SDLC Phase 3 (Contract Locking)
 **Status:** **LOCKED BASELINE — IMMUTABLE CONTRACT**  
 **Governing Documents:** [docs/srs.md](file:///c:/Users/kaaif/Documents/Github/Banking-AI-Customer-Support/docs/srs.md), [docs/system-design.md](file:///c:/Users/kaaif/Documents/Github/Banking-AI-Customer-Support/docs/system-design.md), [docs/architecture.md](file:///c:/Users/kaaif/Documents/Github/Banking-AI-Customer-Support/docs/architecture.md), [docs/pre-made/sdlc.md](file:///c:/Users/kaaif/Documents/Github/Banking-AI-Customer-Support/docs/pre-made/sdlc.md)
 
@@ -560,24 +560,6 @@
 ---
 
 ## 4.1. Rich Chat Widgets & Confirmation Modals Specification
-
-### Overview: How Frontend Receives & Resolves Interactive Widgets
-1. **Asynchronous Polling & Delivery:**
-   - The customer enters a query or action request in the Web Chat.
-   - Frontend calls `POST /api/chat/send/` and receives `{ "job_id": "<UUID>", "session_id": "<UUID>", "status": "PENDING" }`.
-   - Frontend begins polling `GET /api/chat/jobs/{job_id}/` every 500ms–1000ms.
-   - When processing completes, `GET /api/chat/jobs/{job_id}/` returns `status: "COMPLETED"` containing `response.text` and an optional `response.rich_widget`.
-2. **Interactive Confirmation Modals:**
-   - If the user's intent is transactional (e.g. Funds Transfer, Bill Payment, Card Freeze, Dispute Filing), the AI worker calls the backend staging endpoint (`/api/actions/stage-*`), generating a short-lived `staging_id` (5-min TTL).
-   - The job's `rich_widget` is returned with `widget_type: "CONFIRMATION_MODAL"`, containing the full financial breakdown, expiry timestamp, and direct execution parameters.
-   - The frontend renders an inline confirmation card/modal with explicit **[Confirm]** and **[Cancel]** buttons.
-   - When the user clicks **[Confirm]**, the frontend directly submits `POST /api/actions/confirm-*` with `staging_id` and a client-generated `idempotency_key`.
-   - Upon confirmation success, the widget transitions to a **Success Receipt**, eliminating any risk of double submission.
-3. **Session Persistence:**
-   - Every rich widget is saved inside `Message.metadata.rich_widget` in Postgres.
-   - Polling `GET /api/chat/sessions/{id}/` returns historical widgets in their preserved state.
-
----
 
 ### Standard Widget Envelope
 All widgets returned in `response.rich_widget` or stored in `Message.metadata.rich_widget` conform to this standard schema:
@@ -1273,11 +1255,11 @@ Rendered when a transaction exceeds the Tier 3 HITL threshold (> Rs. 50,000) or 
 
 ## 10. Traceability & Lock Status
 
-This contract document formally completes the **Inter-Service Contract Locking** deliverable of **SDLC Phase 2**.
+This contract document formally completes the **Inter-Service Contract Locking** deliverable of **SDLC Phase 3**.
 - **Lock Date:** September 5, 2026
-- **Next Phase:** **SDLC Phase 3 (Component Design)**
+- **Next Phase:** **SDLC Phase 4 (Component Design)**
 - **Team Impact & Execution Boundaries:**
   - **Areeb (Frontend):** May immediately mock these API responses and rich interactive widgets (`docs/contracts.md` §4.1) to build all chat, banking, and admin UI pages.
   - **Hamza & Kaaif (Main Service & Background Worker):** Implement Django models, DRF serializers, atomic viewsets, and Redis queue workers strictly conforming to these locked schemas.
-  - **Javed & Kaaif (AI Worker):** In Phase 3, independently design the internal LangGraph graph nodes, LiteLLM router fallback tiers, and agent tools to consume `/api/internal/ai-config/` and execute actions exclusively by calling the locked backend REST endpoints (`/api/actions/*`, `/api/banking/*`, `/api/internal/*`) over HTTP with the internal service secret.
+  - **Javed & Kaaif (AI Worker):** In Phase 4, independently design the internal LangGraph graph nodes, LiteLLM router fallback tiers, and agent tools to consume `/api/internal/ai-config/` and execute actions exclusively by calling the locked backend REST endpoints (`/api/actions/*`, `/api/banking/*`, `/api/internal/*`) over HTTP with the internal service secret.
 

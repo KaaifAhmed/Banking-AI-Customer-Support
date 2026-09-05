@@ -483,7 +483,7 @@ To ensure maximum clarity and maintainability, endpoints are categorized into in
 The AI Worker Pool runs as an asynchronous Python worker pool (3 replicas) consuming `ai_queue`.
 
 > [!NOTE]
-> The graph structure below establishes the architectural contract boundaries and tool allowances. Specific prompt templates, token budgets, and node implementations will be detailed by the AI lead (Javed & Kaaif) during Phase 3/4.
+> The graph structure below establishes the architectural contract boundaries and tool allowances. Specific prompt templates, token budgets, and node implementations will be detailed by the AI lead (Javed & Kaaif) during Phase 4/5.
 
 ```
                      ┌───────────────────────┐
@@ -696,7 +696,7 @@ Observability is engineered across all four distributed tiers to ensure complete
 
 The project is executed by a 4-member team with clear ownership boundaries:
 
-| Team Member | Role | Primary Responsibility | Directory Scope | Deliverable for Phase 3 (Contract Design) |
+| Team Member | Role | Primary Responsibility | Directory Scope | Deliverable for Phase 4 (Component Design) |
 |---|---|---|---|---|
 | **Kaaif** | **Project Lead & System Architect** | System cohesion, core transactional logic, and AI co-design with Javed | `main-service/core/`, `ai-worker/` | System inter-service contracts, staged transaction schemas, AI prompt/tool contracts. |
 | **Hamza** | **Backend & Infrastructure Lead** | Django backend architecture, Postgres models/migrations, Redis queues, background worker | `main-service/`, `background-worker/` | OpenAPI specs for `/auth/*` and `/api/*`, DB migration scripts, Redis worker consumer setup. |
@@ -707,5 +707,5 @@ The project is executed by a 4-member team with clear ownership boundaries:
 
 ## 11. Traceability & Conclusion
 
-This System Design Document establishes the complete technical blueprint, bridging **SDLC Phase 1 (SRS)** and **SDLC Phase 3 (Component Design Contracts)**.
-- **Next Step:** Proceed to **SDLC Phase 3 (Component Design: 10:30–10:45)**, where each owner defines their component's locked OpenAPI contract and interface schemas.
+This System Design Document establishes the complete technical blueprint, bridging **SDLC Phase 1 (SRS)** and **SDLC Phase 2 (Solution Design)**.
+- **Next Step:** Proceed to **SDLC Phase 3 (Contract Locking: 10:20–10:30)**, where the team finalizes the shared OpenAPI contracts, followed by **SDLC Phase 4 (Component Design: 10:30–10:45)**.
