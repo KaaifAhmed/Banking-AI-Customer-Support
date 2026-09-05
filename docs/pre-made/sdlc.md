@@ -9,6 +9,19 @@
 3. **Every phase is time-boxed.** When time runs out, the phase ends with whatever it has — don't let one phase eat another's budget.
 4. **Every phase produces one concrete artifact** (a document, a contract, a test result, a deployed build). This is what makes the SDLC demonstrable to judges, not just claimed.
 
+## SDLC Phase Progress Checklist
+
+- [x] **Phase 1 — Discovery & SRS Generation** (`docs/project-info.md`, `docs/srs.md`)
+- [x] **Phase 2 — Solution Design** (`docs/system-design.md`, `docs/architecture.md`, team assignments)
+- [x] **Contract Locking — Inter-Service & OpenAPI Specs** (`docs/contracts.md`)
+- [ ] **Phase 3 — Component Design** (Internal logic & blueprints against locked contracts)
+- [ ] **Phase 4 — Implementation** (Parallel component implementation)
+- [ ] **Phase 5 — Component (Unit) Testing** (Passing test suite per component)
+- [ ] **Phase 6 — Integration & System Testing** (Full system running end-to-end)
+- [ ] **Phase 7 — Refinement** (Stabilization & bug fixes)
+- [ ] **Phase 8 — Documentation** (`README.md`, setup validation)
+- [ ] **Phase 9 — Presentation & Submission** (Demo packaging & presentation)
+
 ## Phase-by-Phase
 
 ### Phase 1 — Discovery & SRS Generation
@@ -16,15 +29,53 @@
 Answer the pre-written discovery question bank (below) as a team, as soon as the theme is revealed. Feed the answers into an LLM with a fixed prompt template to generate a short SRS-style document (problem statement, scope, user stories, must-haves vs. stretch). No open-ended brainstorming here — the question bank exists specifically to prevent this phase from sprawling.
 **Output:** `srs.md`
 
-### Phase 2 — Solution Design
+### Phase 2 — Solution Design & Inter-Service Contract Locking
 **Time-box: 10:00–10:30 (30 min)**
-Map the SRS onto the existing scaffold: which service owns which part of the problem, what the Core Domain Service's models/endpoints actually are, whether the AI Service's role changes shape. This phase only decides *what fits where* in the architecture already built — it does not re-litigate the architecture itself. End with components distributed to owners.
-**Output:** Updated `architecture.md` (domain-specific), ownership assignments
+Map the SRS onto the existing scaffold: which service owns which part of the problem, what the domain models are, and how services communicate. **Centrally define and lock all API endpoints, request/response JSON shapes, and queue payloads (`contracts.md`) using the OpenAPI Contract Template (below).** Every team member must know the exact boundary interfaces before branching into individual component work.
+**Output:** `system-design.md`, `architecture.md`, locked `contracts.md`, and ownership assignments.
 
 ### Phase 3 — Component Design
 **Time-box: 10:30–10:45 (15 min)**
-Each owner independently defines their component's contract: endpoints, request/response shapes, data model, key logic — filling the OpenAPI contract template. This is a design pass, not implementation; it's what lets everyone build in parallel with zero interface guesswork in Phase 4.
-**Output:** One filled contract per component
+With the shared inter-service contracts already locked in Phase 2, each owner independently designs their component's internal architecture: internal function signatures, state machine logic, serializer validations, and unit test plans strictly against the locked contract.
+**Output:** Internal design specifications / implementation blueprints per component.
+
+## OpenAPI Contract Template
+
+Every API endpoint must be specified using this standardized template before implementation begins:
+
+```markdown
+### `[METHOD] /path/to/endpoint/`
+- **Description:** Plain-English summary of what this endpoint accomplishes.
+- **Auth Scope:** `Public` | `Customer (Owner)` | `Staff (Group)` | `Internal Secret`
+- **Request Headers:** E.g. `Authorization: Bearer <jwt>`, `X-Internal-Secret: <token>`
+- **URL Parameters / Query Params:** E.g. `?start_date=YYYY-MM-DD&limit=20`
+- **Request Body Schema (JSON):**
+  ```json
+  {
+    "field_name": "data_type (required/optional) — description"
+  }
+  ```
+- **Success Response (`200 OK` / `201 Created`):**
+  ```json
+  {
+    "success": true,
+    "data": { ... },
+    "error": null
+  }
+  ```
+- **Error Responses (`400`, `401`, `403`, `404`, `500`):**
+  ```json
+  {
+    "success": false,
+    "data": null,
+    "error": {
+      "code": "ERROR_CODE_CONSTANT",
+      "message": "Human-readable explanation of error."
+    }
+  }
+  ```
+- **Invariants / Side-Effects:** Atomic transactions, state changes, or queue dispatches triggered.
+```
 
 ### Phase 4 — Implementation
 **Time-box: 10:45–12:30 (105 min)**
