@@ -104,14 +104,8 @@ All tables are defined in Django under `users` and `core` applications. Foreign 
 Standard Django User extended with full CNIC requirement and role-based attributes:
 ```python
 class User(AbstractUser):
-    ROLE_CHOICES = (
-        ("CUSTOMER", "Customer"),
-        ("SUPPORT_AGENT", "Support Agent"),
-        ("COMPLIANCE_MANAGER", "Compliance Manager"),
-        ("SYSTEM_ADMIN", "System Administrator"),
-        ("AI_AGENT", "Automated AI Identity"),
-    )
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="CUSTOMER")
+    # Roles are managed via Django's native auth.Group framework:
+    # Standard Groups: 'Customer', 'SupportAgent', 'ComplianceManager', 'SystemAdmin', 'AIAgent'
     phone_number = models.CharField(max_length=20, unique=True, null=True, blank=True)
     cnic = models.CharField(max_length=15, unique=True)  # Required at account registration (e.g. '42101-1234567-1')
     kyc_status = models.CharField(
@@ -125,6 +119,12 @@ class User(AbstractUser):
     def cnic_last4(self):
         digits = "".join(filter(str.isdigit, self.cnic or ""))
         return digits[-4:] if len(digits) >= 4 else ""
+
+    @property
+    def role(self):
+        """Derives primary role directly from native Django Group membership."""
+        group = self.groups.first()
+        return group.name if group else "Customer"
 ```
 
 ---
@@ -315,37 +315,40 @@ main-service/
 │   ├── urls.py              # Root router: /auth/*, /api/*, /health
 │   ├── asgi.py & wsgi.py
 ├── users/
-│   ├── models.py            # User identity, roles, CNIC, phone
+│   ├── models.py            # User identity, CNIC, phone (uses native Django Groups for RBAC)
 │   ├── serializers.py       # Auth & Profile serializers
 │   ├── views.py             # Login, Register, Refresh, Me
-│   ├── permissions.py       # RBAC: IsCustomer, IsSupportAgent, IsComplianceManager, IsSystemAdmin
 │   └── urls.py
 ├── core/
 │   ├── models.py            # Accounts, Cards, Txns, Bills, Sessions, Disputes
 │   ├── serializers.py       # Domain serializers & response envelopes
 │   ├── views/
 │   │   ├── banking.py       # Accounts, balances, transactions, cards, bills
-│   │   ├── chat.py          # Chat message intake, polling, session management
+│   │   ├── chat.py          # Chat message intake, polling, session management (enqueues to ai_queue)
 │   │   ├── actions.py       # Staging & confirming transfers, bill payments, disputes
 │   │   ├── admin_ops.py     # HITL approvals, takeover, system health overview
 │   │   ├── internal.py      # Internal AI config & tool execution for workers
-│   │   └── whatsapp.py      # WhatsApp inbound webhook
+│   │   └── whatsapp.py      # WhatsApp inbound webhook (enqueues to ai_queue)
 │   ├── services/            # Domain Business Logic Layer
 │   │   ├── transfer_service.py  # Atomic transfer execution with select_for_update()
 │   │   ├── card_service.py      # Card freeze/unfreeze/block state machine
-│   │   ├── dispute_service.py   # Dispute creation and HITL ticket routing
-│   │   └── queue_service.py     # Redis queue enqueueing (ai_queue, tasks_queue)
+│   │   └── dispute_service.py   # Dispute creation and HITL ticket routing
 │   └── urls.py
 ```
 
 ### 4.1 Layered Architecture Pattern
 1. **View Layer (DRF APIViews / ViewSets):**
-   - Strictly responsible for HTTP parsing, auth verification, serializer validation, and standard response envelope formatting.
-   - Delegates all business logic to the domain service layer.
-2. **Domain Service Layer (`core/services/`):**
-   - Encapsulates banking rules, limit validations, and state changes.
-   - Ensures consistency across both human API requests and automated AI tool calls.
-3. **Database Concurrency & Atomic Transaction Pattern:**
+   - Strictly responsible for HTTP parsing, auth verification via native Django `Group` permissions, serializer validation, and standard response envelope formatting.
+   - Directly enqueues jobs to Redis (`ai_queue` and `tasks_queue`) without redundant service indirection.
+   - Delegates domain banking mutations to the domain service layer.
+2. **Native Django Groups for RBAC:**
+   - Uses Django's built-in `auth.Group` and `auth.Permission` framework rather than custom permission boilerplate.
+   - Roles (`Customer`, `SupportAgent`, `ComplianceManager`, `SystemAdmin`) are mapped directly to Django Groups.
+   - Views verify access using Django's idiomatic group checks (e.g. `request.user.groups.filter(name="ComplianceManager").exists()`).
+3. **Domain Service Layer (`core/services/`):**
+   - Encapsulates critical financial invariants, limit validations, and state changes.
+   - Keeps business logic strictly separated from HTTP handlers.
+4. **Database Concurrency & Atomic Transaction Pattern:**
    - All financial mutations execute inside `django.db.transaction.atomic()` with `select_for_update()` to prevent race conditions:
    ```python
    # core/services/transfer_service.py
@@ -376,24 +379,21 @@ main-service/
        pending.save()
        return txn
    ```
-4. **Redis Queue Producer Pattern:**
-   - When a chat message arrives, Main Service saves the message to Postgres, packages a standard job envelope, and pushes to Redis:
+5. **Direct View-to-Queue Producer Pattern:**
+   - Tasks are enqueued directly within the view (e.g. `chat.py` or `whatsapp.py`) using Redis `rpush`:
    ```python
-   # core/services/queue_service.py
-   def enqueue_ai_job(session_id: str, user_id: int, message_content: str, channel: str) -> str:
-       job_id = str(uuid.uuid4())
-       job_payload = {
-           "job_id": job_id,
-           "session_id": str(session_id),
-           "user_id": user_id,
-           "message": message_content,
-           "channel": channel,
-           "enqueued_at": timezone.now().isoformat(),
-       }
-       redis_client.rpush("ai_queue", json.dumps(job_payload))
-       return job_id
+   # Direct push in view when message is received
+   job_payload = {
+       "job_id": str(uuid.uuid4()),
+       "session_id": str(session.id),
+       "user_id": request.user.id,
+       "message": content,
+       "channel": session.channel,
+       "enqueued_at": timezone.now().isoformat(),
+   }
+   redis_client.rpush("ai_queue", json.dumps(job_payload))
    ```
-5. **Internal Worker Authentication:**
+6. **Internal Worker Authentication:**
    - Workers communicate with internal endpoints (`/api/internal/*`) using a pre-shared header: `X-Internal-Secret: <SECRET_FROM_ENV>`. This ensures external web callers cannot reach internal configuration or execution endpoints.
 
 ---
